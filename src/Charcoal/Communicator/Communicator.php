@@ -43,7 +43,6 @@ class Communicator implements CommunicatorInterface
     use LoggerAwareTrait;
     use ManufacturableEmailTrait;
     use ManufacturableModelTrait;
-    use SettingsAwareTrait;
     use SupportTrait;
     use TranslatorAwareTrait;
     use ViewableTrait;
@@ -124,7 +123,7 @@ class Communicator implements CommunicatorInterface
         $channel = $this->getChannel($channel);
 
         if (in_array($scenario, $channel)) {
-            return $channel[$scenario]
+            return $channel[$scenario];
         } else {
             throw new RuntimeException(sprintf(
                 'The "%s" scenario does not exist for the given "%s" channel.',
@@ -142,7 +141,7 @@ class Communicator implements CommunicatorInterface
     protected function defaultFrom()
     {
         return [
-            'from' => $this->appConfig('email.default_from');
+            'from' => $this->appConfig('email.default_from')
         ];
     }
 

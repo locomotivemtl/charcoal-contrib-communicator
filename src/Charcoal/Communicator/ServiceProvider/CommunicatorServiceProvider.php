@@ -44,7 +44,7 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
          * @return Communicator
          */
         $container['communicator'] = function (Container $container) {
-            $communicatorConfig = $container['config']->get('communicator');
+            $config = $container['config']->get('communicator');
 
             $communicator = new Communicator([
                 'logger'              => $container['logger'],
@@ -57,8 +57,10 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
                 'config'              => $container['config']
             ]);
 
-            foreach ($communicatorConfig as $ident => $channel) {
-                $communicator->addChannel($ident, $channel);
+            if (!empty($config) && is_array($config)) {
+                foreach ($config as $ident => $channel) {
+                    $communicator->addChannel($ident, $channel);
+                }
             }
 
             return $communicator;

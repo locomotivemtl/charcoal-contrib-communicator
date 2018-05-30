@@ -21,7 +21,7 @@ interface CommunicatorInterface
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
-    public function send($scenario, $channel, $templateData = [])
+    public function send($scenario, $channel, $templateData = []);
 
     /**
      * @return array|mixed
