@@ -1,0 +1,44 @@
+{
+    "communicator": {
+        "channels": {
+            "user": {
+                "enquiry_confirmation": {
+                    "log": true,
+                    "campaign": "",
+                    "subject": {
+                        "en": "Enquiry confirmation",
+                        "fr": "Confirmation de votre demande d'information"
+                    },
+                    "template_ident": "communicator/email/default",
+                    "template_data": {
+                        "title": {
+                            "en": "Enquiry confirmation",
+                            "fr": "Confirmation de votre demande d'information"
+                        },
+                        "message": {
+                            "en": "Thank you {{ template_data.subscriberName }} for your interest in our company! We received your request for information and will contact you as soon as we can.",
+                            "fr": "Merci {{ template_data.subscriberName }} de votre intérêt envers notre compagnie! Nous avons reçu votre demande d'information et vous contacterons dès que possible."
+                        },
+                        "signature": {
+                            "en": "The Team",
+                            "fr": "L’équipe"
+                        }
+                    }
+                }
+            },
+            "admin": {
+                "enquiry_notification":  {
+                    "log": true,
+                    "campaign": "",
+                    "subject": "Company Name - New Enquiry ({{ template_data.category }})",
+                    "template_ident": "communicator/email/default",
+                    "template_data": {
+                        "title": "New Enquiry from {{ template_data.subscriberName }}",
+                        "message": "{{ template_data.subscriberName }} would like information concerning {{ template_data.category }}.",
+                        "charcoal": "<a href=\"{{ template_data.charcoalUrl }}\"><b>See the enquiry on Charcoal<b></a>"
+                    }
+                }
+            }
+        }
+    }
+}

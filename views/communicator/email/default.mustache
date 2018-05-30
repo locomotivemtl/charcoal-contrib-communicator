@@ -1,0 +1,17 @@
+{{> communicator/email/partial/header }}
+
+<h1 style="font-size:28px;font-weight:bold;line-height:1.4;color:#000000;margin-top:0;margin-bottom:20px;text-align: center;">
+    {{ title }}
+</h1>
+<ul style="background-color:#eeedee;padding:10px 30px 35px 30px;margin:0;">
+    {{# message }}
+        <li style="display:block;font-size:14px;padding-bottom:15px;margin-top:20px;">
+            {{& . }}
+        </li>
+    {{/ message }}
+</ul>
+{{# signature }}
+    <p>{{ . }}</p>
+{{/signature}}
+
+{{> communicator/email/partial/footer }}
