@@ -1,6 +1,6 @@
 <?php
 
-namespace Charcaol\Communicator\ServiceProvider;
+namespace Charcoal\Communicator\ServiceProvider;
 
 // From Pimple
 use Pimple\Container;
@@ -37,51 +37,6 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $container)
     {
-        $this->registerCommunicatorDependencies($container);
-
-        /**
-         * @param  Container $container The Pimple DI Container.
-         * @return UserCommunicatorInterface|CommunicatorInterface
-         */
-        $container['user/communicator'] = function (Container $container) {
-            return new UserCommunicator([
-                'logger'              => $container['logger'],
-                'debug'               => $container['debug'],
-                'email/factory'       => $container['email/factory'],
-                'model/factory'       => $container['model/factory'],
-                'translator'          => $container['translator'],
-                'communicator/config' => $container['config']->get('communicator.user'),
-                'view'                => $container['view'],
-                'base-url'            => $container['base-url'],
-                'config'              => $container['config']
-            ]);
-        };
-
-        /**
-         * @param  Container $container The Pimple DI Container.
-         * @return AdminCommunicatorInterface|CommunicatorInterface
-         */
-        $container['admin/communicator'] = function (Container $container) {
-            return new AdminCommunicator([
-                'logger'              => $container['logger'],
-                'debug'               => $container['debug'],
-                'email/factory'       => $container['email/factory'],
-                'model/factory'       => $container['model/factory'],
-                'translator'          => $container['translator'],
-                'communicator/config' => $container['config']->get('communicator.admin'),
-                'view'                => $container['view'],
-                'base-url'            => $container['base-url'],
-                'config'              => $container['config']
-            ]);
-        };
-    }
-
-    /**
-     * @param Container $container A Pimple DI container.
-     * @return void
-     */
-    protected function registerCommunicatorDependencies(Container $container)
-    {
         /**
          * Instance of the Communicator, that is used for email communications.
          *
@@ -103,7 +58,7 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
             ]);
 
             foreach ($communicatorConfig as $ident => $channel) {
-                $communicator->addChannel($ident, $channel)
+                $communicator->addChannel($ident, $channel);
             }
 
             return $communicator;
