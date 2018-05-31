@@ -56,9 +56,8 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
                 'base-url'            => $container['base-url'],
                 'config'              => $container['config']
             ]);
-
-            if (!empty($config) && is_array($config)) {
-                foreach ($config as $ident => $channel) {
+            if (!empty($config) && is_array($config) && isset($config['channels']) && is_array($config['channels'])) {
+                foreach ($config['channels'] as $ident => $channel) {
                     $communicator->addChannel($ident, $channel);
                 }
             }

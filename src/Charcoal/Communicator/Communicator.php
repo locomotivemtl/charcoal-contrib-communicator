@@ -48,6 +48,20 @@ class Communicator implements CommunicatorInterface
     use ViewableTrait;
 
     /**
+     * To whom the email is destined.
+     *
+     * @var array|mixed $to
+     */
+    protected $to;
+
+    /**
+     * From whom the email is delivered.
+     *
+     * @var array|mixed $from
+     */
+    protected $from;
+
+    /**
      * The available communication channels.
      *
      * @var array
@@ -98,10 +112,10 @@ class Communicator implements CommunicatorInterface
      * @throws RuntimeException If the channel is not found in the config.
      * @return array
      */
-    protected function getChannel($ident)
+    protected function getChannel($channel)
     {
-        if (in_array($ident, $this->channels)) {
-            return $this->channels[$ident];
+        if (array_key_exists($channel, $this->channels)) {
+            return $this->channels[$channel];
         } else {
             throw new RuntimeException(sprintf(
                 'The "%s" channel does not exist.',
@@ -113,22 +127,22 @@ class Communicator implements CommunicatorInterface
     /**
      * Retrieve a scenario from a communication channel.
      *
-     * @param string $scenario The scenario identifier.
-     * @param string $channel  The channel identifier.
+     * @param string $scenarioIdent The scenario identifier.
+     * @param string $channelIdent  The channel identifier.
      * @throws RuntimeException If the scenario are not found in the config.
      * @return array
      */
-    protected function getScenario($scenario, $channel)
+    protected function getScenario($scenarioIdent, $channelIdent)
     {
-        $channel = $this->getChannel($channel);
+        $channel = $this->getChannel($channelIdent);
 
-        if (in_array($scenario, $channel)) {
-            return $channel[$scenario];
+        if (array_key_exists($scenarioIdent, $channel)) {
+            return $channel[$scenarioIdent];
         } else {
             throw new RuntimeException(sprintf(
                 'The "%s" scenario does not exist for the given "%s" channel.',
-                $scenario,
-                $channel
+                $scenarioIdent,
+                $channelIdent
             ));
         }
     }
@@ -163,16 +177,16 @@ class Communicator implements CommunicatorInterface
     /**
      * Create an email and deliver it, according to a given channel & scenario.
      *
-     * @param string      $channel      The channel identifier.
-     * @param string      $scenario     The scenario identifier.
-     * @param array|mixed $templateData The email data.
+     * @param string      $channelIdent  The channel identifier.
+     * @param string      $scenarioIdent The scenario identifier.
+     * @param array|mixed $templateData  The email data.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
-    public function send($scenario, $channel, $templateData = [])
+    public function send($scenarioIdent, $channelIdent, $templateData = [])
     {
-        $channel  = $this->getChannel($channel);
-        $scenario = $this->getScenario($scenario, $channel);
+        $scenario = $this->getScenario($scenarioIdent, $channelIdent);
+        $channel  = $this->getChannel($channelIdent);
 
         if (is_scalar($templateData)) {
             throw new InvalidArgumentException(sprintf(
@@ -242,7 +256,7 @@ class Communicator implements CommunicatorInterface
             return $translation;
         }
 
-        $locales = [ 'en', 'fr' ];
+        $locales = $this->translator()->availableLocales();
 
         // Check for language keys
         $isTranslation = true;
