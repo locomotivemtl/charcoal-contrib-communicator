@@ -180,10 +180,11 @@ class Communicator implements CommunicatorInterface
      * @param string      $channelIdent  The channel identifier.
      * @param string      $scenarioIdent The scenario identifier.
      * @param array|mixed $templateData  The email data.
+     * @param array|mixed $files         A list of files to attach.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
-    public function send($scenarioIdent, $channelIdent, $templateData = [])
+    public function send($scenarioIdent, $channelIdent, $templateData = [], array $files = [])
     {
         $scenario = $this->getScenario($scenarioIdent, $channelIdent);
         $channel  = $this->getChannel($channelIdent);
@@ -237,6 +238,10 @@ class Communicator implements CommunicatorInterface
 
         if ($this->to() && !is_scalar($this->to())) {
             $data['to'] = $this->to();
+        }
+
+        if (!empty($files)) {
+            $data['attachments'] = $files;
         }
 
         $email->setData($data);
