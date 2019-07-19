@@ -24,7 +24,7 @@ trait CommunicatorAwareTrait
      * Set the communicator service.
      *
      * @param  CommunicatorInterface $communicator The Communicator service.
-     * @return void
+     * @return CommunicatorInterface
      */
     public function communicator()
     {
