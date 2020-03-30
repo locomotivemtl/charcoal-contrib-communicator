@@ -5,8 +5,21 @@ namespace Charcoal\Communicator;
 use InvalidArgumentException;
 use RuntimeException;
 
-// From PSR-3
+// From 'psr/log'
 use Psr\Log\LoggerAwareTrait;
+
+// From 'psr/http-message'
+use Psr\Http\Message\UriInterface;
+
+// From `charcoal-app`
+use Charcoal\App\AppConfig;
+use Charcoal\App\DebugAwareTrait;
+
+// From 'charcoal-factory'
+use Charcoal\Factory\FactoryInterface;
+
+// From 'charcoal-core'
+use Charcoal\Model\ModelFactoryTrait;
 
 // From `charcoal-email`
 use Charcoal\Email\EmailAwareTrait;
@@ -16,12 +29,6 @@ use Charcoal\Translator\TranslatorAwareTrait;
 
 // From `charcoal-view`
 use Charcoal\View\ViewableTrait;
-
-// From `mcaskill\charcoal-support`
-use Charcoal\Support\App\Template\DynamicAppConfigTrait;
-use Charcoal\Support\App\Template\SupportTrait;
-use Charcoal\Support\Email\ManufacturableEmailTrait;
-use Charcoal\Support\Model\ManufacturableModelTrait;
 
 /**
  * The Communicator service handles all email confirmations and notifications.
@@ -34,16 +41,13 @@ use Charcoal\Support\Model\ManufacturableModelTrait;
  * - `logger` A PSR3 logger instance
  * - `email/factory` A Email Factory instance
  * - `translator` A Translator instance
- * - `logger` A PSR3 logger instance
  */
 class Communicator implements CommunicatorInterface
 {
-    use DynamicAppConfigTrait;
+    use DebugAwareTrait;
     use EmailAwareTrait;
     use LoggerAwareTrait;
-    use ManufacturableEmailTrait;
-    use ManufacturableModelTrait;
-    use SupportTrait;
+    use ModelFactoryTrait;
     use TranslatorAwareTrait;
     use ViewableTrait;
 
@@ -74,6 +78,13 @@ class Communicator implements CommunicatorInterface
      * @var array
      */
     private $formData = [];
+
+    /**
+     * Store the factory instance.
+     *
+     * @var FactoryInterface
+     */
+    private $emailFactory;
 
     /**
      * Returns a new Communicator object.
@@ -339,5 +350,103 @@ class Communicator implements CommunicatorInterface
         $this->formData = $formData;
 
         return $this;
+    }
+
+    /**
+     * Set the application's configset.
+     *
+     * @param  AppConfig $appConfig A Charcoal application configset.
+     * @return self
+     */
+    protected function setAppConfig(AppConfig $appConfig)
+    {
+        $this->appConfig = $appConfig;
+
+        return $this;
+    }
+
+    /**
+     * Retrieve the application's configset or a specific setting.
+     *
+     * @param  string|null $key     Optional data key to retrieve from the configset.
+     * @param  mixed|null  $default The default value to return if data key does not exist.
+     * @return mixed|AppConfig|SettingsInterface
+     */
+    protected function appConfig($key = null, $default = null)
+    {
+        if ($key) {
+            if (isset($this->appConfig[$key])) {
+                return $this->appConfig[$key];
+            } else {
+                if (!is_string($default) && is_callable($default)) {
+                    return $default();
+                } else {
+                    return $default;
+                }
+            }
+        }
+
+        return $this->appConfig;
+    }
+
+    /**
+     * Set an email model factory.
+     *
+     * @param  FactoryInterface $factory The factory to create emails.
+     * @return void
+     */
+    protected function setEmailFactory(FactoryInterface $factory)
+    {
+        $this->emailFactory = $factory;
+    }
+
+    /**
+     * Retrieve the email model factory.
+     *
+     * @throws RuntimeException If the model factory is missing.
+     * @return FactoryInterface
+     */
+    protected function emailFactory()
+    {
+        if (!isset($this->emailFactory)) {
+            throw new RuntimeException(sprintf(
+                'Email Factory is not defined for [%s]',
+                get_class($this)
+            ));
+        }
+
+        return $this->emailFactory;
+    }
+
+    /**
+     * Set the base URI of the project.
+     *
+     * @see    \Charcoal\App\ServiceProvider\AppServiceProvider `$container['base-url']`
+     * @param  UriInterface $uri The base URI.
+     * @return self
+     */
+    protected function setBaseUrl(UriInterface $uri)
+    {
+        $this->baseUrl = $uri;
+
+        return $this;
+    }
+
+    /**
+     * Retrieve the base URI of the project.
+     *
+     * @throws RuntimeException If the base URI is missing.
+     * @return UriInterface|null
+     */
+    protected function baseUrl()
+    {
+        if (!isset($this->baseUrl)) {
+            throw new RuntimeException(sprintf(
+                'The base URI is not defined for [%s]',
+                get_class($this)
+            ));
+        }
+
+        return $this->baseUrl;
     }
 }
