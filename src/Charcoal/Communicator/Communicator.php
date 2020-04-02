@@ -5,24 +5,11 @@ namespace Charcoal\Communicator;
 use InvalidArgumentException;
 use RuntimeException;
 
-// From 'psr/log'
-use Psr\Log\LoggerAwareTrait;
-
-// From 'psr/http-message'
-use Psr\Http\Message\UriInterface;
-
-// From `charcoal-app`
-use Charcoal\App\AppConfig;
-use Charcoal\App\DebugAwareTrait;
+// From `charcoal-config`
+use Charcoal\Config\ConfigurableTrait;
 
 // From 'charcoal-factory'
 use Charcoal\Factory\FactoryInterface;
-
-// From 'charcoal-core'
-use Charcoal\Model\ModelFactoryTrait;
-
-// From `charcoal-email`
-use Charcoal\Email\EmailAwareTrait;
 
 // From `charcoal-translator`
 use Charcoal\Translator\TranslatorAwareTrait;
@@ -32,22 +19,10 @@ use Charcoal\View\ViewableTrait;
 
 /**
  * The Communicator service handles all email confirmations and notifications.
- *
- * ## Constructor dependencies
- *
- * Constructor dependencies are passed as an array of `key=>value` pair.
- * The required dependencies are:
- *
- * - `logger` A PSR3 logger instance
- * - `email/factory` A Email Factory instance
- * - `translator` A Translator instance
  */
 class Communicator implements CommunicatorInterface
 {
-    use DebugAwareTrait;
-    use EmailAwareTrait;
-    use LoggerAwareTrait;
-    use ModelFactoryTrait;
+    use ConfigurableTrait;
     use TranslatorAwareTrait;
     use ViewableTrait;
 
@@ -93,15 +68,10 @@ class Communicator implements CommunicatorInterface
      */
     public function __construct(array $data)
     {
-        $this->setModelFactory($data['model/factory']);
-        $this->setAppConfig($data['config']);
-
-        $this->setLogger($data['logger']);
-        $this->setDebug($data['debug']);
-        $this->setEmailFactory($data['email/factory']);
+        $this->setConfig($data['config']);
+        $this->setEmailFactory($data['emailFactory']);
         $this->setTranslator($data['translator']);
         $this->setView($data['view']);
-        $this->setBaseUrl($data['base-url']);
     }
 
     /**
@@ -166,7 +136,7 @@ class Communicator implements CommunicatorInterface
     protected function defaultFrom()
     {
         return [
-            'from' => $this->appConfig('email.default_from')
+            'from' => $this->config('email.default_from')
         ];
     }
 
@@ -416,37 +386,5 @@ class Communicator implements CommunicatorInterface
         }
 
         return $this->emailFactory;
-    }
-
-    /**
-     * Set the base URI of the project.
-     *
-     * @see    \Charcoal\App\ServiceProvider\AppServiceProvider `$container['base-url']`
-     * @param  UriInterface $uri The base URI.
-     * @return self
-     */
-    protected function setBaseUrl(UriInterface $uri)
-    {
-        $this->baseUrl = $uri;
-
-        return $this;
-    }
-
-    /**
-     * Retrieve the base URI of the project.
-     *
-     * @throws RuntimeException If the base URI is missing.
-     * @return UriInterface|null
-     */
-    protected function baseUrl()
-    {
-        if (!isset($this->baseUrl)) {
-            throw new RuntimeException(sprintf(
-                'The base URI is not defined for [%s]',
-                get_class($this)
-            ));
-        }
-
-        return $this->baseUrl;
     }
 }
