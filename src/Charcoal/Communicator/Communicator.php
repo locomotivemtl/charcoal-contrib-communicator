@@ -247,7 +247,7 @@ class Communicator implements CommunicatorInterface
         }
 
         if ($isTranslation) {
-            return (string)$this->translator()->translation($translation);
+            return $this->translator()->translate($translation);
         }
 
         $out = [];
