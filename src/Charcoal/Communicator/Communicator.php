@@ -2,23 +2,16 @@
 
 namespace Charcoal\Communicator;
 
+use Charcoal\Config\ConfigurableTrait;
+use Charcoal\Factory\FactoryInterface;
+use Charcoal\Translator\Translation;
+use Charcoal\Translator\TranslatorAwareTrait;
+use Charcoal\View\ViewableTrait;
 use InvalidArgumentException;
 use RuntimeException;
 
-// From `charcoal-config`
-use Charcoal\Config\ConfigurableTrait;
-
-// From 'charcoal-factory'
-use Charcoal\Factory\FactoryInterface;
-
-// From `charcoal-translator`
-use Charcoal\Translator\TranslatorAwareTrait;
-
-// From `charcoal-view`
-use Charcoal\View\ViewableTrait;
-
 /**
- * The Communicator service handles all email confirmations and notifications.
+ * The Communicator service handles all email notifications.
  */
 class Communicator implements CommunicatorInterface
 {
@@ -77,8 +70,8 @@ class Communicator implements CommunicatorInterface
     /**
      * Adds a communication channel.
      *
-     * @param string $ident  The identifier of the channel.
-     * @param array  $config The configset of the channel.
+     * @param  string $ident  The identifier of the channel.
+     * @param  array  $config The configset of the channel.
      * @return void
      */
     public function addChannel($ident, $config = [])
@@ -89,7 +82,7 @@ class Communicator implements CommunicatorInterface
     /**
      * Retrieve a communication channel from the available pool.
      *
-     * @param string $channel The channel identifier.
+     * @param  string $channel The channel identifier.
      * @throws RuntimeException If the channel is not found in the config.
      * @return array
      */
@@ -108,8 +101,8 @@ class Communicator implements CommunicatorInterface
     /**
      * Retrieve a scenario from a communication channel.
      *
-     * @param string $scenarioIdent The scenario identifier.
-     * @param string $channelIdent  The channel identifier.
+     * @param  string $scenarioIdent The scenario identifier.
+     * @param  string $channelIdent  The channel identifier.
      * @throws RuntimeException If the scenario are not found in the config.
      * @return array
      */
@@ -136,7 +129,7 @@ class Communicator implements CommunicatorInterface
     protected function defaultFrom()
     {
         return [
-            'from' => $this->config('email.default_from')
+            'from' => $this->config('email.default_from'),
         ];
     }
 
@@ -150,18 +143,18 @@ class Communicator implements CommunicatorInterface
         return [
             'to' => [
                 'name'  => '',
-                'email' => ''
-            ]
+                'email' => '',
+            ],
         ];
     }
 
     /**
      * Create an email and deliver it, according to a given channel & scenario.
      *
-     * @param string      $channelIdent  The channel identifier.
-     * @param string      $scenarioIdent The scenario identifier.
-     * @param array|mixed $templateData  The email data.
-     * @param array|mixed $files         A list of files to attach.
+     * @param  string      $channelIdent  The channel identifier.
+     * @param  string      $scenarioIdent The scenario identifier.
+     * @param  array|mixed $templateData  The email data.
+     * @param  array|mixed $files         A list of files to attach.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
@@ -183,23 +176,23 @@ class Communicator implements CommunicatorInterface
 
         $languageData = [
             'template_data' => [
-                'currentLanguage' => $this->translator()->getLocale()
-            ]
+                'currentLanguage' => $this->translator()->getLocale(),
+            ],
         ];
         $scenarioData = $this->parseRecursiveTranslations($scenario);
         $templateData = isset($templateData['template_data']) ? $templateData : [ 'template_data' => $templateData ];
 
         // Merge templateData and formData, which adds the later to the rendering context.
-        $renderData = array_merge_recursive(
-            $templateData,
-            [ 'form_data' => $this->formData() ]
-        );
+        $renderData = array_merge_recursive($templateData, [
+            'form_data' => $this->formData(),
+        ]);
 
         // Manages renderable data found in the scenario config
         array_walk_recursive($scenarioData, function (&$value, $key, $templateData) {
             if ($key === 'template_ident') {
                 return;
             }
+
             if (is_string($value)) {
                 $value = $this->view()->renderTemplate($value, $templateData);
             }
@@ -233,8 +226,8 @@ class Communicator implements CommunicatorInterface
     /**
      * Look for translations in a dataset.
      *
-     * @param mixed $translation An array to translate.
-     * @return array|\Charcoal\Translator\Translation|string|null
+     * @param  mixed $translation An array to translate.
+     * @return array|Translation|string|null
      */
     protected function parseRecursiveTranslations($translation)
     {
@@ -274,7 +267,7 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * @param array|mixed $to To whom the email is sent.
+     * @param  array|mixed $to To whom the email is sent.
      * @return self
      */
     public function setTo($to)
@@ -293,7 +286,7 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * @param array|mixed $from From whom the email is sent.
+     * @param  array|mixed $from From whom the email is sent.
      * @return self
      */
     public function setFrom($from)
@@ -312,7 +305,7 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * @param array|mixed $data The form data submitted.
+     * @param  array|mixed $data The form data submitted.
      * @return self
      */
     public function setFormData($data)
@@ -320,43 +313,6 @@ class Communicator implements CommunicatorInterface
         $this->formData = $formData;
 
         return $this;
-    }
-
-    /**
-     * Set the application's configset.
-     *
-     * @param  AppConfig $appConfig A Charcoal application configset.
-     * @return self
-     */
-    protected function setAppConfig(AppConfig $appConfig)
-    {
-        $this->appConfig = $appConfig;
-
-        return $this;
-    }
-
-    /**
-     * Retrieve the application's configset or a specific setting.
-     *
-     * @param  string|null $key     Optional data key to retrieve from the configset.
-     * @param  mixed|null  $default The default value to return if data key does not exist.
-     * @return mixed|AppConfig|SettingsInterface
-     */
-    protected function appConfig($key = null, $default = null)
-    {
-        if ($key) {
-            if (isset($this->appConfig[$key])) {
-                return $this->appConfig[$key];
-            } else {
-                if (!is_string($default) && is_callable($default)) {
-                    return $default();
-                } else {
-                    return $default;
-                }
-            }
-        }
-
-        return $this->appConfig;
     }
 
     /**

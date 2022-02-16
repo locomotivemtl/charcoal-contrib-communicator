@@ -2,28 +2,24 @@
 
 namespace Charcoal\Communicator;
 
+use Charcoal\Communicator\CommunicatorInterface;
 use RuntimeException;
 
-// From 'charcoal-contrib-communicator'
-use Charcoal\Communicator\CommunicatorInterface;
-
 /**
- * The Communicator Aware Trait provides the methods necessary for an object
- * to use a "Communicator" service.
+ * Basic implementation of CommunicatorAwareInterface.
  */
 trait CommunicatorAwareTrait
 {
     /**
      * The Communicator service.
      *
-     * @var CommunicatorInterface
+     * @var CommunicatorInterface|null
      */
     private $communicator;
 
     /**
-     * Set the communicator service.
+     * Gets a communicator instance on the object.
      *
-     * @param  CommunicatorInterface $communicator The Communicator service.
      * @return CommunicatorInterface
      */
     public function communicator()
@@ -36,9 +32,9 @@ trait CommunicatorAwareTrait
     }
 
     /**
-     * Set the communicator service.
+     * Sets a communicator instance on the object.
      *
-     * @param  CommunicatorInterface $communicator The Communicator service.
+     * @param  CommunicatorInterface $communicator The communicator service.
      * @return void
      */
     public function setCommunicator(CommunicatorInterface $communicator)

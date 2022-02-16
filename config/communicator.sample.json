@@ -27,7 +27,7 @@
                 }
             },
             "admin": {
-                "enquiry_notification":  {
+                "enquiry_notification": {
                     "log": true,
                     "campaign": "",
                     "subject": "Company Name - New Enquiry ({{ template_data.category }})",

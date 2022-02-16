@@ -3,21 +3,21 @@
 namespace Charcoal\Communicator;
 
 /**
- * Communicator Interface
+ * Describes a communicator instance.
  */
 interface CommunicatorInterface
 {
     /**
-     * @param string $ident  The identifier of the channel.
-     * @param array  $config The configset of the channel.
+     * @param  string $ident  The identifier of the channel.
+     * @param  array  $config The configset of the channel.
      * @return void
      */
     public function addChannel($ident, $config = []);
 
     /**
-     * @param string      $channel      The channel identifier.
-     * @param string      $scenario     The scenario identifier.
-     * @param array|mixed $templateData The email data.
+     * @param  string      $channel      The channel identifier.
+     * @param  string      $scenario     The scenario identifier.
+     * @param  array|mixed $templateData The email data.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
@@ -29,7 +29,7 @@ interface CommunicatorInterface
     public function to();
 
     /**
-     * @param array|mixed $to To whom the email is sent.
+     * @param  array|mixed $to To whom the email is sent.
      * @return self
      */
     public function setTo($to);
@@ -40,7 +40,7 @@ interface CommunicatorInterface
     public function from();
 
     /**
-     * @param array|mixed $from From whom the email is sent.
+     * @param  array|mixed $from From whom the email is sent.
      * @return self
      */
     public function setFrom($from);
@@ -51,7 +51,7 @@ interface CommunicatorInterface
     public function formData();
 
     /**
-     * @param array|mixed $data The form data submitted.
+     * @param  array|mixed $data The form data submitted.
      * @return self
      */
     public function setFormData($data);
