@@ -13,6 +13,11 @@
             "homepage": "https://locomotive.ca"
         }
     ],
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.3.x-dev"
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
