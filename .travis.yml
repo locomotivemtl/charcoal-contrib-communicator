@@ -10,8 +10,8 @@ php:
 env:
     global:
         # GH_TOKEN define in repository settings on travis-ci.org
-        - GH_REPO: github.com/locomotivemtl/charcoal-contrib-foobar.git
-        - GH_PAGES: locomotivemtl.github.io/charcoal-contrib-foobar
+        - GH_REPO: github.com/locomotivemtl/charcoal-contrib-communicator.git
+        - GH_PAGES: locomotivemtl.github.io/charcoal-contrib-communicator
 
 matrix:
     allow_failures:
