@@ -24,12 +24,8 @@ trait CommunicatorAwareTrait
      *
      * @return CommunicatorInterface
      */
-    public function communicator()
+    public function getCommunicator(): CommunicatorInterface
     {
-        if (!isset($this->communicator)) {
-            throw new RuntimeException('Communicator has not been set on this object.');
-        }
-
         return $this->communicator;
     }
 
@@ -39,10 +35,8 @@ trait CommunicatorAwareTrait
      * @param  CommunicatorInterface $communicator The communicator service.
      * @return void
      */
-    public function setCommunicator(CommunicatorInterface $communicator)
+    public function setCommunicator(CommunicatorInterface $communicator): void
     {
         $this->communicator = $communicator;
-
-        return $this;
     }
 }
