@@ -36,7 +36,7 @@ class Communicator implements CommunicatorInterface
     /**
      * The available communication channels.
      *
-     * @var array
+     * @var array<string, array<string, array>>
      */
     private $channels = [];
 
@@ -68,55 +68,97 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * Adds a communication channel.
+     * Adds one or more communication channels.
      *
-     * @param  string $ident  The identifier of the channel.
-     * @param  array  $config The configset of the channel.
-     * @return void
+     * This method will replace any previously defined channels.
+     *
+     * @param  array $channels A map of channel names and details.
+     * @return self
      */
-    public function addChannel($ident, $config = [])
+    public function addChannels(array $channels)
     {
-        $this->channels[$ident] = $config;
+        foreach ($channels as $ident => $channel) {
+            $this->addChannel($ident, $channel);
+        }
+
+        return $this;
     }
 
     /**
-     * Retrieve a communication channel from the available pool.
+     * Adds a communication channel.
      *
-     * @param  string $channel The channel identifier.
-     * @throws RuntimeException If the channel is not found in the config.
+     * This method will replace any previously defined channel.
+     *
+     * @param  string $name The channel name.
+     * @param  array  $data The channel details.
+     * @return self
+     */
+    public function addChannel($name, array $data)
+    {
+        $this->channels[$name] = $data;
+
+        return $this;
+    }
+
+    /**
+     * Determines if a communication channel is defined.
+     *
+     * @param  string $name The channel name.
+     * @return boolean
+     */
+    public function hasChannel($name)
+    {
+        return isset($this->channels[$name]);
+    }
+
+    /**
+     * Retrieves a communication channel from the available pool.
+     *
+     * @param  string $name The channel name.
+     * @throws InvalidArgumentException If the channel is not defined.
      * @return array
      */
-    protected function getChannel($channel)
+    public function getChannel($name)
     {
-        if (array_key_exists($channel, $this->channels)) {
-            return $this->channels[$channel];
+        if ($this->hasChannel($name)) {
+            return $this->channels[$name];
         } else {
-            throw new RuntimeException(sprintf(
-                'The "%s" channel does not exist.',
-                $channel
+            throw new InvalidArgumentException(sprintf(
+                'Communicator channel [%s] does not exist',
+                $name
             ));
         }
     }
 
     /**
-     * Retrieve a scenario from a communication channel.
+     * Determines if a communication scenario is defined.
      *
-     * @param  string $scenarioIdent The scenario identifier.
-     * @param  string $channelIdent  The channel identifier.
-     * @throws RuntimeException If the scenario are not found in the config.
+     * @param  string $scenarioName The scenario name.
+     * @param  string $channelName  The channel name.
+     * @return boolean
+     */
+    public function hasScenario($scenarioName, $channelName)
+    {
+        return isset($this->channels[$channelName][$scenarioName]);
+    }
+
+    /**
+     * Retrieves a scenario from a communication channel.
+     *
+     * @param  string $scenarioName The scenario name.
+     * @param  string $channelName  The channel name.
+     * @throws InvalidArgumentException If the scenario or channel is not defined.
      * @return array
      */
-    protected function getScenario($scenarioIdent, $channelIdent)
+    public function getScenario($scenarioName, $channelName)
     {
-        $channel = $this->getChannel($channelIdent);
-
-        if (array_key_exists($scenarioIdent, $channel)) {
-            return $channel[$scenarioIdent];
+        if ($this->hasScenario($scenarioName, $channelName)) {
+            return $this->channels[$channelName][$scenarioName];
         } else {
-            throw new RuntimeException(sprintf(
-                'The "%s" scenario does not exist for the given "%s" channel.',
-                $scenarioIdent,
-                $channelIdent
+            throw new InvalidArgumentException(sprintf(
+                'Communicator scenario [%s] does not exist on channel [%s]',
+                $scenarioName,
+                $channelName
             ));
         }
     }
@@ -151,17 +193,16 @@ class Communicator implements CommunicatorInterface
     /**
      * Create an email and deliver it, according to a given channel & scenario.
      *
-     * @param  string      $channelIdent  The channel identifier.
-     * @param  string      $scenarioIdent The scenario identifier.
-     * @param  array|mixed $templateData  The email data.
-     * @param  array|mixed $files         A list of files to attach.
+     * @param  string      $channelName  The channel identifier.
+     * @param  string      $scenarioName The scenario identifier.
+     * @param  array|mixed $templateData The email data.
+     * @param  array|mixed $files        A list of files to attach.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
-    public function send($scenarioIdent, $channelIdent, $templateData = [], array $files = [])
+    public function send($scenarioName, $channelName, $templateData = [], array $files = [])
     {
-        $scenario = $this->getScenario($scenarioIdent, $channelIdent);
-        $channel  = $this->getChannel($channelIdent);
+        $scenario = $this->getScenario($scenarioName, $channelName);
 
         if (is_scalar($templateData)) {
             throw new InvalidArgumentException(sprintf(

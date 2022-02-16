@@ -25,19 +25,18 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
          * @return CommunicatorInterface
          */
         $container['communicator'] = function (Container $container) {
-            $config = $container['config']->get('communicator');
+            $appConfig = $container['config'];
+            $comConfig = $appConfig['communicator'];
 
             $communicator = new Communicator([
-                'config'       => $container['config'],
+                'config'       => $appConfig,
                 'emailFactory' => $container['email/factory'],
                 'translator'   => $container['translator'],
                 'view'         => $container['view'],
             ]);
 
-            if (isset($config['channels']) && is_array($config['channels'])) {
-                foreach ($config['channels'] as $ident => $channel) {
-                    $communicator->addChannel($ident, $channel);
-                }
+            if (isset($comConfig['channels']) && is_array($comConfig['channels'])) {
+                $communicator->addChannels($comConfig['channels']);
             }
 
             return $communicator;
