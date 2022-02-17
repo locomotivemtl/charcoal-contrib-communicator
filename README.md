@@ -43,8 +43,8 @@ $ composer require locomotivemtl/charcoal-contrib-communicator
 
 #### Required
 
--   [**PHP 5.6+**](https://php.net): _PHP 7_ is recommended.
--   [**locomotivemtl/charcoal-email**](https://packagist.org/packages/locomotivemtl/charcoal-email): ^0.3
+-   [**PHP**](https://php.net): 7.3+
+-   [**locomotivemtl/charcoal-email**](https://packagist.org/packages/locomotivemtl/charcoal-email): ~0.6
 
 
 

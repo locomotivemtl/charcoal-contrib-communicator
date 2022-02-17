@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Charcoal\Communicator\ServiceProvider;
 
 use Charcoal\Communicator\Communicator;
