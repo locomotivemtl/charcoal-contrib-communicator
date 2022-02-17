@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Charcoal\Communicator;
 
 use Charcoal\Email\EmailAwareTrait;
-use Charcoal\Factory\FactoryInterface;
+use Charcoal\Factory\FactoryInterface as Factory;
 use Charcoal\Translator\Translation;
-use Charcoal\Translator\TranslatorAwareTrait;
-use Charcoal\View\ViewableTrait;
+use Charcoal\Translator\Translator;
+use Charcoal\View\ViewInterface as View;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -20,8 +20,6 @@ class Communicator implements CommunicatorInterface
     use EmailAwareTrait {
         EmailAwareTrait::parseEmail as parseEmailToString;
     }
-    use TranslatorAwareTrait;
-    use ViewableTrait;
 
     /**
      * The sender email address.
@@ -74,22 +72,71 @@ class Communicator implements CommunicatorInterface
     private $formData = [];
 
     /**
-     * Store the factory instance.
+     * The email factory instance.
      *
-     * @var FactoryInterface
+     * @var Factory
      */
     private $emailFactory;
 
     /**
-     * Returns a new Communicator object.
+     * The translator instance.
      *
-     * @param array $data Class dependencies.
+     * @var Translator
      */
-    public function __construct(array $data)
+    private $translator;
+
+    /**
+     * The view renderer instance.
+     *
+     * @var View
+     */
+    private $view;
+
+    /**
+     * Returns a new Communicator instance.
+     *
+     * @param Factory    $emailFactory The email factory instance.
+     * @param Translator $translator   The translator instance.
+     * @param View       $view         The view renderer instance.
+     */
+    public function __construct(
+        Factory $emailFactory,
+        Translator $translator,
+        View $view
+    ) {
+        $this->emailFactory = $emailFactory;
+        $this->translator   = $translator;
+        $this->view         = $view;
+    }
+
+    /**
+     * Gets the email factory instance.
+     *
+     * @return Factory
+     */
+    public function getEmailFactory(): Factory
     {
-        $this->setEmailFactory($data['emailFactory']);
-        $this->setTranslator($data['translator']);
-        $this->setView($data['view']);
+        return $this->emailFactory;
+    }
+
+    /**
+     * Gets the translator instance.
+     *
+     * @return Translator
+     */
+    public function getTranslator(): Translator
+    {
+        return $this->translator;
+    }
+
+    /**
+     * Gets the view renderer instance.
+     *
+     * @return View
+     */
+    public function getView(): View
+    {
+        return $this->view;
     }
 
     /**
@@ -366,7 +413,7 @@ class Communicator implements CommunicatorInterface
 
         $languageData = [
             'template_data' => [
-                'currentLanguage' => $this->translator()->getLocale(),
+                'currentLanguage' => $this->getTranslator()->getLocale(),
             ],
         ];
 
@@ -388,7 +435,7 @@ class Communicator implements CommunicatorInterface
             }
 
             if (is_string($value)) {
-                $value = $this->view()->renderTemplate($value, $renderData);
+                $value = $this->getView()->renderTemplate($value, $renderData);
             }
         }, $renderData);
 
@@ -428,7 +475,7 @@ class Communicator implements CommunicatorInterface
     public function create($scenarioName, $channelName, array $customData = [], array $attachments = [])
     {
         $data  = $this->prepare($scenarioName, $channelName, $customData, $attachments);
-        $email = $this->emailFactory()->create('email')->setData($data);
+        $email = $this->getEmailFactory()->create('email')->setData($data);
 
         return $email;
     }
@@ -462,7 +509,7 @@ class Communicator implements CommunicatorInterface
             return $translation;
         }
 
-        $locales = $this->translator()->availableLocales();
+        $locales = $this->getTranslator()->availableLocales();
 
         // Check for language keys
         $isTranslation = true;
@@ -474,7 +521,7 @@ class Communicator implements CommunicatorInterface
         }
 
         if ($isTranslation) {
-            return $this->translator()->translate($translation);
+            return $this->getTranslator()->translate($translation);
         }
 
         $out = [];
@@ -522,34 +569,5 @@ class Communicator implements CommunicatorInterface
         throw new InvalidArgumentException(
             'Expected email address as a string or array'
         );
-    }
-
-    /**
-     * Set an email model factory.
-     *
-     * @param  FactoryInterface $factory The factory to create emails.
-     * @return void
-     */
-    protected function setEmailFactory(FactoryInterface $factory)
-    {
-        $this->emailFactory = $factory;
-    }
-
-    /**
-     * Retrieve the email model factory.
-     *
-     * @throws RuntimeException If the model factory is missing.
-     * @return FactoryInterface
-     */
-    protected function emailFactory()
-    {
-        if (!isset($this->emailFactory)) {
-            throw new RuntimeException(sprintf(
-                'Email Factory is not defined for [%s]',
-                get_class($this)
-            ));
-        }
-
-        return $this->emailFactory;
     }
 }

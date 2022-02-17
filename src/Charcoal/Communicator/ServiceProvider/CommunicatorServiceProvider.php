@@ -30,11 +30,11 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
             $appConfig = $container['config'];
             $comConfig = $appConfig['communicator'];
 
-            $communicator = new Communicator([
-                'emailFactory' => $container['email/factory'],
-                'translator'   => $container['translator'],
-                'view'         => $container['view'],
-            ]);
+            $communicator = new Communicator(
+                $container['email/factory'],
+                $container['translator'],
+                $container['view']
+            );
 
             if (isset($comConfig['default_from'])) {
                 $communicator->setDefaultFrom($comConfig['default_from']);
