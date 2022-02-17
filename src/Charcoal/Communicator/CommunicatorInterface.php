@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Charcoal\Communicator;
 
+use Charcoal\Email\EmailInterface as Email;
+
 /**
  * Describes a communicator instance.
  */
@@ -34,9 +36,9 @@ interface CommunicatorInterface
      * Determines if a communication channel is defined.
      *
      * @param  string $name The channel name.
-     * @return boolean
+     * @return bool
      */
-    public function hasChannel($name);
+    public function hasChannel($name): bool;
 
     /**
      * Retrieves a communication channel from the available pool.
@@ -44,16 +46,16 @@ interface CommunicatorInterface
      * @param  string $name The channel name.
      * @return array
      */
-    public function getChannel($name);
+    public function getChannel($name): array;
 
     /**
      * Determines if a communication scenario is defined.
      *
      * @param  string $scenarioName The scenario name.
      * @param  string $channelName  The channel name.
-     * @return boolean
+     * @return bool
      */
-    public function hasScenario($scenarioName, $channelName);
+    public function hasScenario($scenarioName, $channelName): bool;
 
     /**
      * Retrieves a scenario from a communication channel.
@@ -62,7 +64,7 @@ interface CommunicatorInterface
      * @param  string $channelName  The channel name.
      * @return array
      */
-    public function getScenario($scenarioName, $channelName);
+    public function getScenario($scenarioName, $channelName): array;
 
     /**
      * Prepare email data according to a given channel, scenario,
@@ -73,7 +75,7 @@ interface CommunicatorInterface
      * @param  array  $customData   The email or template data.
      * @return array
      */
-    public function prepare($scenarioName, $channelName, array $customData = []);
+    public function prepare($scenarioName, $channelName, array $customData = []): array;
 
     /**
      * Create and prepare an email according to a given channel, scenario,
@@ -84,7 +86,7 @@ interface CommunicatorInterface
      * @param  array  $customData   The email or template data.
      * @return Email
      */
-    public function create($scenarioName, $channelName, array $customData = []);
+    public function create($scenarioName, $channelName, array $customData = []): Email;
 
     /**
      * Create and send an email according to a given channel, scenario,
@@ -94,9 +96,9 @@ interface CommunicatorInterface
      * @param  string   $scenarioName The scenario name.
      * @param  array    $customData   The email and template data.
      * @throws InvalidArgumentException If the template data is scalar.
-     * @return boolean
+     * @return bool
      */
-    public function send($scenarioName, $channelName, array $customData = []);
+    public function send($scenarioName, $channelName, array $customData = []): bool;
 
     /**
      * Sets the sender email address.
@@ -142,7 +144,7 @@ interface CommunicatorInterface
      * @param  array $data The form data submitted.
      * @return self
      */
-    public function setFormData(array $data): self;
+    public function setFormData(array $data);
 
     /**
      * Gets the form data.

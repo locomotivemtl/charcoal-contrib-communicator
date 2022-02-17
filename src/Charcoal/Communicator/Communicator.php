@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Charcoal\Communicator;
 
 use Charcoal\Email\EmailAwareTrait;
+use Charcoal\Email\EmailInterface as Email;
 use Charcoal\Factory\FactoryInterface as Factory;
 use Charcoal\Translator\Translation;
 use Charcoal\Translator\Translator;
@@ -149,7 +150,7 @@ class Communicator implements CommunicatorInterface
      * @param  array $channels A map of channel names and details.
      * @return self
      */
-    public function addChannels(array $channels)
+    public function addChannels(array $channels): self
     {
         foreach ($channels as $ident => $channel) {
             $this->addChannel($ident, $channel);
@@ -167,7 +168,7 @@ class Communicator implements CommunicatorInterface
      * @param  array  $data The channel details.
      * @return self
      */
-    public function addChannel($name, array $data)
+    public function addChannel($name, array $data): self
     {
         $this->channels[$name] = $data;
 
@@ -180,7 +181,7 @@ class Communicator implements CommunicatorInterface
      * @param  string $name The channel name.
      * @return boolean
      */
-    public function hasChannel($name)
+    public function hasChannel($name): bool
     {
         return isset($this->channels[$name]);
     }
@@ -192,7 +193,7 @@ class Communicator implements CommunicatorInterface
      * @throws InvalidArgumentException If the channel is not defined.
      * @return array
      */
-    public function getChannel($name)
+    public function getChannel($name): array
     {
         if ($this->hasChannel($name)) {
             return $this->channels[$name];
@@ -211,7 +212,7 @@ class Communicator implements CommunicatorInterface
      * @param  string $channelName  The channel name.
      * @return boolean
      */
-    public function hasScenario($scenarioName, $channelName)
+    public function hasScenario($scenarioName, $channelName): bool
     {
         return isset($this->channels[$channelName][$scenarioName]);
     }
@@ -224,7 +225,7 @@ class Communicator implements CommunicatorInterface
      * @throws InvalidArgumentException If the scenario or channel is not defined.
      * @return array
      */
-    public function getScenario($scenarioName, $channelName)
+    public function getScenario($scenarioName, $channelName): array
     {
         if ($this->hasScenario($scenarioName, $channelName)) {
             return $this->channels[$channelName][$scenarioName];
@@ -401,7 +402,7 @@ class Communicator implements CommunicatorInterface
      * @param  array  $attachments  List of paths to attach to email.
      * @return array
      */
-    public function prepare($scenarioName, $channelName, array $customData = [], array $attachments = [])
+    public function prepare($scenarioName, $channelName, array $customData = [], array $attachments = []): array
     {
         $scenarioData = $this->getScenario($scenarioName, $channelName);
         $scenarioData = $this->parseRecursiveTranslations($scenarioData);
@@ -474,7 +475,7 @@ class Communicator implements CommunicatorInterface
      * @param  array  $attachments  List of paths to attach to email.
      * @return Email
      */
-    public function create($scenarioName, $channelName, array $customData = [], array $attachments = [])
+    public function create($scenarioName, $channelName, array $customData = [], array $attachments = []): Email
     {
         $data  = $this->prepare($scenarioName, $channelName, $customData, $attachments);
         $email = $this->getEmailFactory()->create('email')->setData($data);
@@ -492,46 +493,11 @@ class Communicator implements CommunicatorInterface
      * @param  array  $attachments  List of paths to attach to email.
      * @return boolean
      */
-    public function send($scenarioName, $channelName, array $customData = [], array $attachments = [])
+    public function send($scenarioName, $channelName, array $customData = [], array $attachments = []): bool
     {
         $email = $this->create($scenarioName, $channelName, $customData, $attachments);
 
         return $email->send();
-    }
-
-    /**
-     * Look for translations in a dataset.
-     *
-     * @param  mixed $translation An array to translate.
-     * @return array|Translation|string|null
-     */
-    protected function parseRecursiveTranslations($translation)
-    {
-        if (!is_array($translation)) {
-            return $translation;
-        }
-
-        $locales = $this->getTranslator()->availableLocales();
-
-        // Check for language keys
-        $isTranslation = true;
-        foreach ($translation as $key => $val) {
-            if (!in_array($key, $locales)) {
-                $isTranslation = false;
-                break;
-            }
-        }
-
-        if ($isTranslation) {
-            return $this->getTranslator()->translate($translation);
-        }
-
-        $out = [];
-        foreach ($translation as $key => $val) {
-            $out[$key] = $this->parseRecursiveTranslations($val);
-        }
-
-        return $out;
     }
 
     /**
@@ -575,5 +541,40 @@ class Communicator implements CommunicatorInterface
         throw new InvalidArgumentException(
             'Expected email address as a string or array'
         );
+    }
+
+    /**
+     * Parse any translations in the dataset.
+     *
+     * @param  mixed $translation An array to translate.
+     * @return Translation|array|string|null
+     */
+    protected function parseRecursiveTranslations($translation)
+    {
+        if (!is_array($translation)) {
+            return $translation;
+        }
+
+        $locales = $this->getTranslator()->availableLocales();
+
+        // Check for language keys
+        $isTranslation = true;
+        foreach ($translation as $key => $val) {
+            if (!in_array($key, $locales)) {
+                $isTranslation = false;
+                break;
+            }
+        }
+
+        if ($isTranslation) {
+            return $this->getTranslator()->translate($translation);
+        }
+
+        $out = [];
+        foreach ($translation as $key => $val) {
+            $out[$key] = $this->parseRecursiveTranslations($val);
+        }
+
+        return $out;
     }
 }
