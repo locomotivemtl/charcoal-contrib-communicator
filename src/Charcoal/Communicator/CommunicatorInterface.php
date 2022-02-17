@@ -63,13 +63,38 @@ interface CommunicatorInterface
     public function getScenario($scenarioName, $channelName);
 
     /**
-     * @param  string      $channelName  The channel identifier.
-     * @param  string      $scenarioName The scenario identifier.
-     * @param  array|mixed $templateData The email data.
+     * Prepare email data according to a given channel, scenario,
+     * and custom data.
+     *
+     * @param  string $channelName  The channel name.
+     * @param  string $scenarioName The scenario name.
+     * @param  array  $customData   The email or template data.
+     * @return array
+     */
+    public function prepare($scenarioName, $channelName, array $customData = []);
+
+    /**
+     * Create and prepare an email according to a given channel, scenario,
+     * and custom data.
+     *
+     * @param  string $channelName  The channel name.
+     * @param  string $scenarioName The scenario name.
+     * @param  array  $customData   The email or template data.
+     * @return Email
+     */
+    public function create($scenarioName, $channelName, array $customData = []);
+
+    /**
+     * Create and send an email according to a given channel, scenario,
+     * and custom data.
+     *
+     * @param  string   $channelName  The channel name.
+     * @param  string   $scenarioName The scenario name.
+     * @param  array    $customData   The email and template data.
      * @throws InvalidArgumentException If the template data is scalar.
      * @return boolean
      */
-    public function send($scenario, $channel, $templateData = []);
+    public function send($scenarioName, $channelName, array $customData = []);
 
     /**
      * @return array|mixed

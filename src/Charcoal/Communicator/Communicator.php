@@ -191,27 +191,22 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * Create an email and deliver it, according to a given channel & scenario.
+     * Prepare email data according to a given channel, scenario,
+     * and custom data.
      *
-     * @param  string      $channelName  The channel identifier.
-     * @param  string      $scenarioName The scenario identifier.
-     * @param  array|mixed $templateData The email data.
-     * @param  array|mixed $files        A list of files to attach.
-     * @throws InvalidArgumentException If the template data is scalar.
-     * @return boolean
+     * @param  string $channelName  The channel name.
+     * @param  string $scenarioName The scenario name.
+     * @param  array  $customData   The email or template data.
+     *     If $emailData does not contain a "template_data" key,
+     *     the method assumes is the contents of "template_data".
+     * @param  array  $attachments  List of paths to attach to email.
+     * @return array
      */
-    public function send($scenarioName, $channelName, $templateData = [], array $files = [])
+    public function prepare($scenarioName, $channelName, array $customData = [], array $attachments = [])
     {
-        $scenario = $this->getScenario($scenarioName, $channelName);
+        $scenarioData = $this->getScenario($scenarioName, $channelName);
+        $scenarioData = $this->parseRecursiveTranslations($scenarioData);
 
-        if (is_scalar($templateData)) {
-            throw new InvalidArgumentException(sprintf(
-                'The Template Data parameter cannot be scalar for [%s::send()] method',
-                get_class($this)
-            ));
-        }
-
-        $email       = $this->emailFactory()->create('email');
         $defaultFrom = $this->parseRecursiveTranslations($this->defaultFrom());
         $defaultTo   = $this->parseRecursiveTranslations($this->defaultTo());
 
@@ -220,46 +215,83 @@ class Communicator implements CommunicatorInterface
                 'currentLanguage' => $this->translator()->getLocale(),
             ],
         ];
-        $scenarioData = $this->parseRecursiveTranslations($scenario);
-        $templateData = isset($templateData['template_data']) ? $templateData : [ 'template_data' => $templateData ];
 
-        // Merge templateData and formData, which adds the later to the rendering context.
-        $renderData = array_merge_recursive($templateData, [
+        if (!isset($customData['template_data'])) {
+            $customData = [
+                'template_data' => $customData,
+            ];
+        }
+
+        // Merge emailData and formData, which adds the later to the rendering context.
+        $renderData = array_merge_recursive($customData, [
             'form_data' => $this->formData(),
         ]);
 
         // Manages renderable data found in the scenario config
-        array_walk_recursive($scenarioData, function (&$value, $key, $templateData) {
+        array_walk_recursive($scenarioData, function (&$value, $key, $renderData) {
             if ($key === 'template_ident') {
                 return;
             }
 
             if (is_string($value)) {
-                $value = $this->view()->renderTemplate($value, $templateData);
+                $value = $this->view()->renderTemplate($value, $renderData);
             }
         }, $renderData);
 
-        $data = array_merge_recursive(
+        $emailData = array_merge_recursive(
             $defaultFrom,
             $defaultTo,
             $languageData,
             $scenarioData,
-            $templateData
+            $customData
         );
 
         if ($this->from() && !is_scalar($this->from())) {
-            $data['from'] = $this->from();
+            $emailData['from'] = $this->from();
         }
 
         if ($this->to() && !is_scalar($this->to())) {
-            $data['to'] = $this->to();
+            $emailData['to'] = $this->to();
         }
 
-        if (!empty($files)) {
-            $data['attachments'] = $files;
+        if (!empty($attachments)) {
+            $emailData['attachments'] = $attachments;
         }
 
-        $email->setData($data);
+        return $emailData;
+    }
+
+    /**
+     * Create and prepare an email according to a given channel, scenario,
+     * and custom data.
+     *
+     * @param  string $channelName  The channel name.
+     * @param  string $scenarioName The scenario name.
+     * @param  array  $customData   The email or template data.
+     * @param  array  $attachments  List of paths to attach to email.
+     * @return Email
+     */
+    public function create($scenarioName, $channelName, array $customData = [], array $attachments = [])
+    {
+        $data  = $this->prepare($scenarioName, $channelName, $customData, $attachments);
+        $email = $this->emailFactory()->create('email')->setData($data);
+
+        return $email;
+    }
+
+    /**
+     * Create, prepare, and send an email according to a given channel, scenario,
+     * and custom data.
+     *
+     * @param  string $channelName  The channel name.
+     * @param  string $scenarioName The scenario name.
+     * @param  array  $customData   The email or template data.
+     * @param  array  $attachments  List of paths to attach to email.
+     * @return boolean
+     */
+    public function send($scenarioName, $channelName, array $customData = [], array $attachments = [])
+    {
+        $email = $this->create($scenarioName, $channelName, $customData, $attachments);
 
         return $email->send();
     }
