@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Charcoal\Communicator;
 
-use Charcoal\Config\ConfigurableTrait;
+use Charcoal\Email\EmailAwareTrait;
 use Charcoal\Factory\FactoryInterface;
 use Charcoal\Translator\Translation;
 use Charcoal\Translator\TranslatorAwareTrait;
@@ -17,23 +17,47 @@ use RuntimeException;
  */
 class Communicator implements CommunicatorInterface
 {
-    use ConfigurableTrait;
+    use EmailAwareTrait {
+        EmailAwareTrait::parseEmail as parseEmailToString;
+    }
     use TranslatorAwareTrait;
     use ViewableTrait;
 
     /**
-     * To whom the email is destined.
+     * The sender email address.
      *
-     * @var array|mixed $to
+     * Expected to be one address.
+     *
+     * @var array<string, string>
      */
-    protected $to;
+    private $from;
 
     /**
-     * From whom the email is delivered.
+     * The recipient email address.
      *
-     * @var array|mixed $from
+     * Expected to be one or many addresses.
+     *
+     * @var array<string, string>[]
      */
-    protected $from;
+    private $to = [];
+
+    /**
+     * The default sender email address.
+     *
+     * Expected to be one address.
+     *
+     * @var array<string, string>
+     */
+    private $defaultFrom;
+
+    /**
+     * The default recipient email address.
+     *
+     * Expected to be one or many addresses.
+     *
+     * @var array<string, string>[]
+     */
+    private $defaultTo = [];
 
     /**
      * The available communication channels.
@@ -63,7 +87,6 @@ class Communicator implements CommunicatorInterface
      */
     public function __construct(array $data)
     {
-        $this->setConfig($data['config']);
         $this->setEmailFactory($data['emailFactory']);
         $this->setTranslator($data['translator']);
         $this->setView($data['view']);
@@ -166,30 +189,155 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * The default from email and name.
+     * Sets the default sender email address.
      *
-     * @return array
+     * @param  mixed $email An email address.
+     * @return self
      */
-    protected function defaultFrom()
+    public function setDefaultFrom($email): self
     {
-        return [
-            'from' => $this->config('email.default_from'),
-        ];
+        $this->defaultFrom = $this->parseEmailToArray($email);
+
+        return $this;
     }
 
     /**
-     * The default from email and name.
+     * Gets the default sender email address.
      *
-     * @return array
+     * @return array<string, string>|null
      */
-    protected function defaultTo()
+    public function getDefaultFrom(): ?array
     {
-        return [
-            'to' => [
-                'name'  => '',
-                'email' => '',
-            ],
-        ];
+        return $this->defaultFrom;
+    }
+
+    /**
+     * Sets the default recipient email address.
+     *
+     * @param  mixed $emails One or many email addresses.
+     * @throws InvalidArgumentException If the email addresses are invalid.
+     * @return self
+     */
+    public function setDefaultTo($emails): self
+    {
+        $this->defaultTo = [];
+
+        if (is_string($emails) || isset($emails['email'])) {
+            $this->addTo($emails);
+
+            return $this;
+        }
+
+        if (is_array($emails)) {
+            foreach ($emails as $recipient) {
+                $this->addTo($recipient);
+            }
+
+            return $this;
+        }
+
+        throw new InvalidArgumentException(
+            'Expected one or many email addresses as strings or arrays'
+        );
+    }
+
+    /**
+     * Adds a default recipient email address.
+     *
+     * @param  mixed $email An email address.
+     * @return self
+     */
+    public function addDefaultTo($email): self
+    {
+        $this->defaultTo[] = $this->parseEmailToArray($email);
+
+        return $this;
+    }
+
+    /**
+     * Gets the default recipient email addresses.
+     *
+     * @return array<string, string>[]
+     */
+    public function getDefaultTo(): array
+    {
+        return $this->defaultTo;
+    }
+
+    /**
+     * Sets the sender email address.
+     *
+     * @param  mixed $email An email address.
+     * @return self
+     */
+    public function setFrom($email): self
+    {
+        $this->from = $this->parseEmailToArray($email);
+
+        return $this;
+    }
+
+    /**
+     * Gets the sender email address.
+     *
+     * @return array<string, string>|null
+     */
+    public function getFrom(): ?array
+    {
+        return $this->from;
+    }
+
+    /**
+     * Sets the recipient email addresses.
+     *
+     * @param  mixed $emails One or many email addresses.
+     * @throws InvalidArgumentException If the email addresses are invalid.
+     * @return self
+     */
+    public function setTo($emails): self
+    {
+        $this->to = [];
+
+        if (is_string($emails) || isset($emails['email'])) {
+            $this->addTo($emails);
+
+            return $this;
+        }
+
+        if (is_array($emails)) {
+            foreach ($emails as $recipient) {
+                $this->addTo($recipient);
+            }
+
+            return $this;
+        }
+
+        throw new InvalidArgumentException(
+            'Expected one or many email addresses as strings or arrays'
+        );
+    }
+
+    /**
+     * Adds a recipient email address.
+     *
+     * @param  mixed $email An email address.
+     * @return self
+     */
+    public function addTo($email): self
+    {
+        $this->to[] = $this->parseEmailToArray($email);
+
+        return $this;
+    }
+
+    /**
+     * Gets the recipient email addresses.
+     *
+     * @return array<string, string>[]
+     */
+    public function getTo(): array
+    {
+        return $this->to;
     }
 
     /**
@@ -209,8 +357,12 @@ class Communicator implements CommunicatorInterface
         $scenarioData = $this->getScenario($scenarioName, $channelName);
         $scenarioData = $this->parseRecursiveTranslations($scenarioData);
 
-        $defaultFrom = $this->parseRecursiveTranslations($this->defaultFrom());
-        $defaultTo   = $this->parseRecursiveTranslations($this->defaultTo());
+        $defaultFrom = $this->parseRecursiveTranslations([
+            'from' => $this->getDefaultFrom(),
+        ]);
+        $defaultTo = $this->parseRecursiveTranslations([
+            'to' => $this->getDefaultTo(),
+        ]);
 
         $languageData = [
             'template_data' => [
@@ -248,12 +400,12 @@ class Communicator implements CommunicatorInterface
             $customData
         );
 
-        if ($this->from() && !is_scalar($this->from())) {
-            $emailData['from'] = $this->from();
+        if ($this->getFrom()) {
+            $emailData['from'] = $this->getFrom();
         }
 
-        if ($this->to() && !is_scalar($this->to())) {
-            $emailData['to'] = $this->to();
+        if ($this->getTo()) {
+            $emailData['to'] = $this->getTo();
         }
 
         if (!empty($attachments)) {
@@ -336,44 +488,6 @@ class Communicator implements CommunicatorInterface
     /**
      * @return array|mixed
      */
-    public function to()
-    {
-        return $this->to;
-    }
-
-    /**
-     * @param  array|mixed $to To whom the email is sent.
-     * @return self
-     */
-    public function setTo($to)
-    {
-        $this->to = $to;
-
-        return $this;
-    }
-
-    /**
-     * @return array|mixed
-     */
-    public function from()
-    {
-        return $this->from;
-    }
-
-    /**
-     * @param  array|mixed $from From whom the email is sent.
-     * @return self
-     */
-    public function setFrom($from)
-    {
-        $this->from = $from;
-
-        return $this;
-    }
-
-    /**
-     * @return array|mixed
-     */
     public function formData()
     {
         return $this->formData;
@@ -388,6 +502,26 @@ class Communicator implements CommunicatorInterface
         $this->formData = $formData;
 
         return $this;
+    }
+
+    /**
+     * @param  mixed $email An email address (either a string or an array).
+     * @throws InvalidArgumentException If the email address is invalid.
+     * @return array<string, string>
+     */
+    protected function parseEmailToArray($email): array
+    {
+        if (is_string($email)) {
+            return $this->emailToArray($email);
+        }
+
+        if (is_array($email) && isset($email['email'])) {
+            return $email;
+        }
+
+        throw new InvalidArgumentException(
+            'Expected email address as a string or array'
+        );
     }
 
     /**

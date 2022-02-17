@@ -99,26 +99,42 @@ interface CommunicatorInterface
     public function send($scenarioName, $channelName, array $customData = []);
 
     /**
-     * @return array|mixed
-     */
-    public function to();
-
-    /**
-     * @param  array|mixed $to To whom the email is sent.
+     * Sets the sender email address.
+     *
+     * @param  mixed $email An email address.
      * @return self
      */
-    public function setTo($to);
+    public function setFrom($email);
 
     /**
-     * @return array|mixed
+     * Gets the sender email address.
+     *
+     * @return array<string, string>|null
      */
-    public function from();
+    public function getFrom(): ?array;
 
     /**
-     * @param  array|mixed $from From whom the email is sent.
+     * Sets the recipient email addresses.
+     *
+     * @param  mixed $emails One or many email addresses.
      * @return self
      */
-    public function setFrom($from);
+    public function setTo($emails);
+
+    /**
+     * Adds a recipient email address.
+     *
+     * @param  mixed $email An email address.
+     * @return self
+     */
+    public function addTo($email);
+
+    /**
+     * Gets the recipient email addresses.
+     *
+     * @return array<string, string>[]
+     */
+    public function getTo(): array;
 
     /**
      * @return array|mixed
