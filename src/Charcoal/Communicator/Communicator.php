@@ -67,6 +67,8 @@ class Communicator implements CommunicatorInterface
     /**
      * The submitted form data.
      *
+     * Used during the rendering of email data.
+     *
      * @var array
      */
     private $formData = [];
@@ -425,7 +427,7 @@ class Communicator implements CommunicatorInterface
 
         // Merge emailData and formData, which adds the later to the rendering context.
         $renderData = array_merge_recursive($customData, [
-            'form_data' => $this->formData(),
+            'form_data' => $this->getFormData(),
         ]);
 
         // Manages renderable data found in the scenario config
@@ -533,22 +535,26 @@ class Communicator implements CommunicatorInterface
     }
 
     /**
-     * @return array|mixed
-     */
-    public function formData()
-    {
-        return $this->formData;
-    }
-
-    /**
-     * @param  array|mixed $data The form data submitted.
+     * Sets the form data.
+     *
+     * @param  array $data The form data submitted.
      * @return self
      */
-    public function setFormData($data)
+    public function setFormData(array $data): self
     {
         $this->formData = $formData;
 
         return $this;
+    }
+
+    /**
+     * Gets the form data.
+     *
+     * @return array
+     */
+    public function getFormData(): array
+    {
+        return $this->formData;
     }
 
     /**

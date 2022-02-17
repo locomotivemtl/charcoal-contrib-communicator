@@ -137,13 +137,17 @@ interface CommunicatorInterface
     public function getTo(): array;
 
     /**
-     * @return array|mixed
-     */
-    public function formData();
-
-    /**
-     * @param  array|mixed $data The form data submitted.
+     * Sets the form data.
+     *
+     * @param  array $data The form data submitted.
      * @return self
      */
-    public function setFormData($data);
+    public function setFormData(array $data): self;
+
+    /**
+     * Gets the form data.
+     *
+     * @return array
+     */
+    public function getFormData(): array;
 }
