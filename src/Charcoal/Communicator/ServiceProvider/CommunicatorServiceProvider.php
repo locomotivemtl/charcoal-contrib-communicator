@@ -4,13 +4,12 @@ namespace Charcoal\Communicator\ServiceProvider;
 
 use Charcoal\Communicator\Communicator;
 use Charcoal\Communicator\CommunicatorInterface;
-use Pimple\Container;
-use Pimple\ServiceProviderInterface;
+use DI\Container;
 
 /**
  * Provides the default communicator service.
  */
-class CommunicatorServiceProvider implements ServiceProviderInterface
+class CommunicatorServiceProvider
 {
     /**
      * @param  Container $container The service container.
@@ -24,15 +23,15 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
          * @param  Container $container The service container.
          * @return CommunicatorInterface
          */
-        $container['communicator'] = function (Container $container) {
-            $appConfig = $container['config'];
+        $container->set('communicator', function (Container $container) {
+            $appConfig = $container->get('config');
             $comConfig = $appConfig['communicator'];
 
             $communicator = new Communicator([
                 'config'       => $appConfig,
-                'emailFactory' => $container['email/factory'],
-                'translator'   => $container['translator'],
-                'view'         => $container['view'],
+                'emailFactory' => $container->get('email/factory'),
+                'translator'   => $container->get('translator'),
+                'view'         => $container->get('view'),
             ]);
 
             if (isset($comConfig['channels']) && is_array($comConfig['channels'])) {
@@ -40,6 +39,6 @@ class CommunicatorServiceProvider implements ServiceProviderInterface
             }
 
             return $communicator;
-        };
+        });
     }
 }
