@@ -5,6 +5,7 @@ namespace Charcoal\Communicator\ServiceProvider;
 use Charcoal\Communicator\Communicator;
 use Charcoal\Communicator\CommunicatorInterface;
 use DI\Container;
+use Psr\Container\ContainerInterface;
 
 /**
  * Provides the default communicator service.
@@ -15,7 +16,7 @@ class CommunicatorServiceProvider
      * @param  Container $container The service container.
      * @return void
      */
-    public function register(Container $container)
+    public function register(ContainerInterface $container)
     {
         /**
          * Instance of the Communicator, that is used for email communications.
@@ -23,7 +24,7 @@ class CommunicatorServiceProvider
          * @param  Container $container The service container.
          * @return CommunicatorInterface
          */
-        $container->set('communicator', function (Container $container) {
+        $container->set('communicator', function (ContainerInterface $container) {
             $appConfig = $container->get('config');
             $comConfig = $appConfig['communicator'];
 
