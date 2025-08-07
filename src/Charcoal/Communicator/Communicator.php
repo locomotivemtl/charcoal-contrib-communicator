@@ -383,7 +383,7 @@ class Communicator implements CommunicatorInterface
      */
     public function setFormData($data)
     {
-        $this->formData = $formData;
+        $this->formData = $data;
 
         return $this;
     }
